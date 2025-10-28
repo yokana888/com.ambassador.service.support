@@ -109,7 +109,31 @@ namespace com.ambassador.support.lib.Services
                 }
             }
 
-            return reportData.AsQueryable();
+            //Order by SerialNo
+            var groupedData = reportData
+                .GroupBy(x => new { x.BeacukaiNo, x.BeacukaiDate, x.CustomsType })
+                .Select(g => new
+                {
+                    g.Key.BeacukaiNo,
+                    g.Key.BeacukaiDate,
+                    g.Key.CustomsType,
+                    // Custom sorting untuk SerialNo string / angka
+                    Items = g.OrderBy(i =>
+                    {
+                        // Jika bisa parse ke int, urutkan sebagai angka
+                        return int.TryParse(i.SerialNo, out int n) ? n : int.MaxValue;
+                    })
+            .ThenBy(i => i.SerialNo) // jika bukan angka, urutkan alfabet
+            .ToList()
+                })
+                .ToList();
+
+            // Flatten data sesuai urutan group dan SerialNo
+            var flattenedData = groupedData
+                .SelectMany(g => g.Items)
+                .ToList();
+
+            return flattenedData.AsQueryable();
         }
         public async Task<Tuple<List<ReceiptRawMaterialViewModel>, int>> GetReport(DateTime? dateFrom, DateTime? dateTo, int page, int size, string Order)
         {
