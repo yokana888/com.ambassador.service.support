@@ -42,13 +42,13 @@ namespace com.ambassador.support.lib.Services
                     using (SqlCommand cmd = new SqlCommand(
                         "declare @StartDate datetime = '" + d1 + "' declare @EndDate datetime = '" + d2 + "' " +
                         "select distinct e.CustomsType,e.BeacukaiNo,convert(date,dateadd(hour,7,e.BeacukaiDate)) as BCDate,f.URNNo,convert(date,dateadd(hour,7,f.ReceiptDate)) as URNDate,g.ProductCode,g.ProductName," +
-                        "sum(g.SmallQuantity) as SmallQuantity,g.SmallUomUnit,a.DOCurrencyCode,sum(cast((g.PricePerDealUnit * g.ReceiptQuantity) as decimal(18,2))) as Amount,a.SupplierName,a.Country, c.ProductSeries, c.DeletedAgent " +
+                        "sum(g.SmallQuantity) as SmallQuantity,g.SmallUomUnit,a.DOCurrencyCode,sum(cast((g.PricePerDealUnit * g.ReceiptQuantity) as decimal(18,2))) as Amount,a.SupplierName,a.Country, c.ProductSeries,c.HsCode,a.RecordDate, c.DeletedAgent " +
                         "from GarmentDeliveryOrders a join GarmentDeliveryOrderItems b on a.id=b.GarmentDOId join GarmentDeliveryOrderDetails c on b.id=c.GarmentDOItemId " +
                         "join GarmentBeacukaiItems d on d.GarmentDOId=a.id join GarmentBeacukais e on e.id=d.BeacukaiId " +
                         "join GarmentUnitReceiptNoteItems g on c.id=g.DODetailId join GarmentUnitReceiptNotes f on g.URNId=f.Id " +
                         "where e.BeacukaiDate between @StartDate and @EndDate and a.CustomsCategory = '"+ customCategory + "' and f.URNType='PEMBELIAN' " +
                         "and a.IsDeleted=0 and b.IsDeleted=0 and c.IsDeleted=0 and d.IsDeleted=0 and e.IsDeleted=0 and f.IsDeleted=0 and g.IsDeleted=0 " +
-                        "group by e.CustomsType,e.BeacukaiNo,e.BeacukaiDate,f.URNNo,f.ReceiptDate,g.ProductCode,g.ProductName,g.SmallUomUnit,a.DOCurrencyCode,a.SupplierName,a.Country,c.ProductSeries,c.DeletedAgent " +
+                        "group by e.CustomsType,e.BeacukaiNo,e.BeacukaiDate,f.URNNo,f.ReceiptDate,g.ProductCode,g.ProductName,g.SmallUomUnit,a.DOCurrencyCode,a.SupplierName,a.Country,c.ProductSeries,c.HsCode,a.RecordDate,c.DeletedAgent " +
                         "order by BCDate asc", conn))
 
                     {
@@ -74,8 +74,11 @@ namespace com.ambassador.support.lib.Services
                                 StorageName = "GUDANG AG2",
                                 SupplierName = "-",
                                 Country = data["Country"].ToString(),
-                                DeletedAgent = data["DeletedAgent"].ToString()
-                            };
+                                DeletedAgent = data["DeletedAgent"].ToString(),
+                                HsCode = data["HsCode"].ToString() == "" ? "-" : data["HsCode"].ToString(),
+                                RecordDate = data["RecordDate"].ToString()
+                            }
+                        ;
                             reportData.Add(view);
                         }
                     }
@@ -93,7 +96,9 @@ namespace com.ambassador.support.lib.Services
             {
                 var trimProduct = a.ProductCode.Trim();
                 var remark = Codes.FirstOrDefault(x => x.Code.Trim() == trimProduct);
-                var Composition = remark == null ? "-" : remark.Composition;
+                //var Composition = remark == null ? "-" : remark.Composition;
+                var Composition = remark == null ? "-" : (remark.Composition == null ? remark.Name : remark.Composition);
+
                 //var Width = remark == null ? "-" : remark.Width;
                 //var Const = remark == null ? "-" : remark.Const;
                 //var Yarn = remark == null ? "-" : remark.Yarn;
@@ -127,11 +132,13 @@ namespace com.ambassador.support.lib.Services
             .ToList()
                 })
                 .ToList();
-
+            
             // Flatten data sesuai urutan group dan SerialNo
             var flattenedData = groupedData
                 .SelectMany(g => g.Items)
                 .ToList();
+
+            
 
             return flattenedData.AsQueryable();
         }
