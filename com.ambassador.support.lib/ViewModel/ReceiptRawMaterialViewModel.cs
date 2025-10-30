@@ -21,6 +21,8 @@ namespace com.ambassador.support.lib.ViewModel
         public string StorageName { get; set; }
         public string SupplierName { get; set; }
         public string Country { get; set; }        
-        public string DeletedAgent { get; set; }        
+        public string DeletedAgent { get; set; }      
+        public string HsCode { get; set; }
+        public string RecordDate { get; set; }
     }
 }
