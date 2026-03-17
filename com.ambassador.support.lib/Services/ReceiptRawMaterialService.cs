@@ -201,7 +201,7 @@ namespace com.ambassador.support.lib.Services
                 foreach (var item in Query)
                 {
                     i++;
-                    result.Rows.Add(i.ToString(), "-",item.CustomsType,item.BeacukaiNo,formattedDate(item.BeacukaiDate), "-",item.SerialNo,item.URNNo,formattedDate(item.URNDate),item.ProductCode,
+                    result.Rows.Add(i.ToString(), item.RecordDate,item.CustomsType,item.BeacukaiNo,formattedDate(item.BeacukaiDate), item.HsCode,item.SerialNo,item.URNNo,formattedDate(item.URNDate),item.ProductCode,
                                     item.ProductName,item.SmallUomUnit,item.SmallQuantity,item.DOCurrencyCode,item.Amount,item.StorageName,item.SupplierName,item.Country);
                 }
             }
